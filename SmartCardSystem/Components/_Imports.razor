@@ -1,0 +1,26 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Authorization
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using SmartCardSystem
+@using SmartCardSystem.Services
+@using SmartCardSystem.Components
+@using SmartCardSystem.DTOs
+@using SmartCardSystem.SmartCardDTO
+@using SmartCardSystem.SmartCardResponses
+@using SmartCardSystem.SmartCardRepository
+@using SmartCardSystem.SmartCardServices
+@using SmartCardSystem.State
+@using static SmartCardSystem.Responses.CustomResponses
+@inject IAccountService _service
+@inject NavigationManager _navManager
+@inject AuthenticationStateProvider _authStateProvider
+@inject IJSRuntime _js
+@inject HttpClient _httpClient
+ @inject IAccountRepository _bankAccountServices
+ @inject IPaymentRepository _paymentRepository

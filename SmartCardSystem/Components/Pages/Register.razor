@@ -1,0 +1,65 @@
+﻿@page "/register"
+@rendermode InteractiveServer
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <h2>Login</h2>
+            <EditForm Model="@register" OnValidSubmit="RegisterClicked">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <InputText @bind-Value="register.Name" class="form-control"></InputText>
+                </div>
+                <div class="form-group mt-3">
+                    <label class="form-label">Email Address</label>
+                    <InputText @bind-Value="register.Email" class="form-control"></InputText>
+                </div>
+                <div class="form-group mt-3">
+                    <label class="form-label">Password </label>
+                    <InputText @bind-Value="register.Password" class="form-control"></InputText>
+                </div>
+                <div class="form-group mt-3">
+                    <label class="form-label"> Confirm Password </label>
+                    <InputText @bind-Value="register.ConfirmPassword" class="form-control"></InputText>
+                </div>
+                <div class="form-group mt-3">
+                    <button class="btn btn-primary" type="submit">Register</button>
+                </div>
+                <ValidationSummary />
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    public RegisterDTO register = new();
+    async Task RegisterClicked()
+    {
+        RegistrationResponse response = await _service.RegisterAsync(register);
+
+
+        if (!response.Flag)
+        {
+            await _js.InvokeVoidAsync("alert", response.Message);
+            return;
+        }
+        await _js.InvokeVoidAsync("alert", response.Message);
+        LoginAfterSignin();
+        return;
+        register = new();
+        return;
+    }
+
+    private async Task LoginAfterSignin()
+    {
+        var loginIns = new LoginDTO();
+        loginIns.Email = register.Email;
+        loginIns.Password = register.Password;
+        LoginResponse response = await _service.LoginAsync(loginIns);
+
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)_authStateProvider;
+        customAuthStateProvider.UpdateAuthenticationState(response.JWTToken);
+        _navManager.NavigateTo("/", forceLoad: true);
+    }
+
+}

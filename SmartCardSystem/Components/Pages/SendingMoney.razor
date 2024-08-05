@@ -1,0 +1,48 @@
+﻿@page "/sendMoney"
+ @rendermode InteractiveServer
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header" style="background-color: #007bff; color: #fff;"><b>Send Money</b></div>
+                <div class="card-body" style="background-color: #f8f9fa;">
+
+                    <EditForm Model="transaction" OnValidSubmit="SendMoneyAsync" FormName="sendMoney">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-group">
+                            <label class="form-label" for="senderAccountNumber">Sender Account Number:</label>
+                            <InputText id="senderAccountNumber" class="form-control" @bind-Value="@transaction.SenderAccountNumber" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="receiverAccountNumber">Receiver Account Number:</label>
+                            <InputText id="receiverAccountNumber" class="form-control" @bind-Value="@transaction.ReceiverAccountNumber" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="amount">Amount:</label>
+                            <InputNumber id="amount" class="form-control" @bind-Value="@transaction.Amount" />
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Send Money</button>
+                        <a href="/main" class="btn btn-primary">Back</a>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private Transaction transaction = new Transaction();
+
+    private async Task SendMoneyAsync()
+    {
+        // Call your SendMoneyAsync method from the service or repository
+       var response = await _paymentRepository.SendMoneyAsync(transaction);
+        await _js.InvokeVoidAsync("alert", response.message);
+        _navManager.NavigateTo($"/main");
+    }
+}

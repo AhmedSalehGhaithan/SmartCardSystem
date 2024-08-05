@@ -1,0 +1,13 @@
+﻿.arrow-button {
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    font-size: 1.2em; /* Adjust the size of the arrow */
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+    .arrow-button:hover {
+        color: #0056b3;
+    }

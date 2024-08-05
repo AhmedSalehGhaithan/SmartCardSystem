@@ -1,0 +1,10 @@
+﻿@page "/"
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Hy <span style="color:darkcyan">@context.User.Identity!.Name</span>, Welcome</h3>
+    </Authorized>
+    <NotAuthorized>
+        <h3>You are not <span style="color:red">logged in</span> the System</h3>
+    </NotAuthorized>
+</AuthorizeView>

@@ -1,0 +1,99 @@
+﻿ @page "/Main"
+
+ @rendermode InteractiveServer
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card">
+                    <div class="card-header"> <button class="btn btn-primary float-end" @onclick="NavigateToAddProductPage"> Add Account </button></div>
+                </div>
+                @if (Accounts.Count > 0)
+                {
+                    <div class="card-header bg-primary text-white">
+                        Product List
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Account Id</th>
+                                    <th>Account Owner</th>
+                                    <th>Account Balance</th>
+                                    <th>Account Number</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var account in Accounts)
+                                {
+                                    <tr>
+                                        <td>@account.Id</td>
+                                        <td style="font-weight:bold">@account.FullName</td>
+                                        <td class="bg-success text-white">$@account.Balance</td>
+                                        <td class="bg-info text-white">@account.AccountNumber</td>
+                                        <td>
+                                            <div class="hstack gap-2">
+                                                <button class="btn btn-outline-secondary" @onclick="()=>Edit(account)"> Edit</button>
+                                                <button class="btn btn-outline-danger" @onclick="() => Delete(account.Id)"> Delete</button>
+                                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                   Transactions
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="depositTransaction/@account.AccountNumber">Deposit</a></li>
+                                                    <li><a class="dropdown-item" href="transactions/@account.AccountNumber">Sending Money</a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-light">account info...</div>
+                }
+                else
+                {
+                    <div class="alert alert-info"> No account Available </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    public List<AccountDTO> Accounts { get; set; } = new();
+
+    private async Task LoadProducts()
+    {
+        var accounts = await _bankAccountServices.GetAllAsync();
+        Accounts?.Clear();
+        if (Accounts is null) return;
+
+        foreach (var product in accounts)
+            Accounts.Add(product);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private void NavigateToAddProductPage()
+    {
+        _navManager.NavigateTo("manage-Account");
+    }
+
+    private void Edit(AccountDTO model)
+    {
+        _navManager.NavigateTo($"manage-Account/{model.Id}");
+    }
+
+    private async Task Delete(int id)
+    {
+        var accountToDelete = await _bankAccountServices.DeleteAsync(id);
+        await _js.InvokeVoidAsync("alert", accountToDelete.message);
+        await LoadProducts();
+    }
+}

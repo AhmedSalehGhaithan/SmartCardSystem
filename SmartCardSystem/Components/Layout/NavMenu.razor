@@ -1,0 +1,57 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">SmartCardSystem</a>
+    </div>
+</div>
+<!-- Include Bootstrap Icons (bi) library -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Include Bootstrap CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3 mt-3">
+                    <NavLink class="nav-link" href="main">
+                        <span class="bi bi-shop" aria-hidden="true"></span> Main
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3 mt-3">
+                    <NavLink class="nav-link" href="deposit">
+                        <span class="bi bi-wallet" aria-hidden="true"></span> Deposit
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3 mt-3">
+                    <NavLink class="nav-link" href="sendMoney">
+                        <span class="bi bi-currency-dollar" aria-hidden="true"></span> Sending Money
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3 mt-3">
+                    <NavLink class="nav-link" href="transactions">
+                        <span class="bi bi-journal-bookmark" aria-hidden="true"></span> Transfer Transactions
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3 mt-3">
+                    <NavLink class="nav-link" href="depositTransaction">
+                        <span class="bi bi-journal-check" aria-hidden="true"></span> Deposit Transactions
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+               
+        
+    </nav>
+</div>
+

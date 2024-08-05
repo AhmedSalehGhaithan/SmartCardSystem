@@ -1,0 +1,94 @@
+﻿@page "/manage-Account/{Id:int?}"
+ @rendermode InteractiveServer
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                @if (Id > 0)
+                {
+                    <div class="card-header" style="background-color: #007bff; color: #fff;"><b>Edit</b> Account</div>
+                }
+                else
+                {
+                    <div class="card-header" style="background-color: #007bff; color: #fff;"><b>Add</b> Account</div>
+                }
+                <div class="card-body" style="background-color: #f8f9fa;">
+
+                    <EditForm Model="AccountModel" OnValidSubmit="HandleSave">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-group">
+                            <label class="form-label " style="color: black;">Full Name</label>
+                            <InputText @bind-Value="AccountModel.FullName" class="form-control"></InputText>
+                            <ValidationMessage For="()=>AccountModel.FullName"></ValidationMessage>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="color: black;">Balance</label>
+                            <InputNumber @bind-Value="AccountModel.Balance" class="form-control"></InputNumber>
+                            <ValidationMessage For="()=>AccountModel.Balance"></ValidationMessage>
+                        </div>
+                        @if (Id > 0)
+                        {
+                            <div class="form-group">
+                                <label class="form-label " style="color: black;">Id</label>
+                                <InputNumber @bind-Value="AccountModel.Id" class="form-control" readonly></InputNumber>
+                                <ValidationMessage For="()=>AccountModel.Id"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label " style="color: black;">Account number</label>
+                                <InputText @bind-Value="AccountModel.AccountNumber" class="form-control" readonly></InputText>
+                                <ValidationMessage For="()=>AccountModel.AccountNumber"></ValidationMessage>
+                            </div>
+                        }
+                        <div class="form-group">
+                            <label class="form-label " style="color: black;">Phone number</label>
+                            <InputText @bind-Value="AccountModel.PhoneNumber" class="form-control"></InputText>
+                            <ValidationMessage For="()=>AccountModel.PhoneNumber"></ValidationMessage>
+                        </div>
+
+                        <button type="submit" class="btn btn-outline-success mt-4" style="background-color: #28a745; color: #fff;"> Save</button>
+                        <a href="/main" class="btn btn-outline-primary mt-4" style="background-color: #007bff; color: #fff;">Back</a>
+
+                    </EditForm>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+
+    public AccountDTO AccountModel { get; set; } = new();
+
+    [Parameter] public int Id { get; set; }
+
+    private async Task HandleSave()
+    {
+
+        if (AccountModel.Id > 0)
+        {
+           var ResponseMessage = await _bankAccountServices.UpdateAsync(AccountModel);
+            await _js.InvokeVoidAsync("alert", ResponseMessage.message);
+            _navManager.NavigateTo($"/");
+        }
+
+        else
+        {
+            var ResponseMessage = await _bankAccountServices.AddAsync(AccountModel);
+            await _js.InvokeVoidAsync("alert", ResponseMessage.message);
+            _navManager.NavigateTo($"/main");
+        }
+
+        AccountModel = new();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id > 0)
+            AccountModel = await _bankAccountServices.GetByIdAsync(Id);
+    }
+}

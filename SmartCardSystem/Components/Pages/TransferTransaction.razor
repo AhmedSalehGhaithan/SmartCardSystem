@@ -1,0 +1,179 @@
+﻿@page "/transactions/{Id?}"
+@rendermode InteractiveServer
+
+<h3>Transaction List</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="btn-group float-end">
+                            @if (string.IsNullOrEmpty(Id))
+                            {
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Add Transaction
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="Deposit">Deposit</a></li>
+                                    <li><a class="dropdown-item" href="sendMoney">Sending Money</a></li>
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                </div>
+                @if (Transactionss != null && Transactionss.Count > 0)
+                {
+                    <div class="card-header bg-primary text-white">
+                        Transaction List
+                        @if (!string.IsNullOrEmpty(Id))
+                        {
+                            <span style="font-weight:bold">For @SenderAccounts.FullName</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Transaction Id</th>
+                                    @if (string.IsNullOrEmpty(Id))
+                                    {
+                                        <th>Sender</th>
+                                    }
+                                    <th>Receiver</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Transactionss)
+                                {
+                                    <tr>
+                                        <td>
+                                           <span>@transaction.TransactionId</span>
+                                        </td>
+                                        @if (string.IsNullOrEmpty(Id))
+                                        {
+                                            <td>
+                                                @if (transaction.SenderAccountNumber == selectedSender && showSenderDetails)
+                                                {
+                                                    <span>@SenderAccounts.FullName</span>
+                                                    <button class="arrow-button" @onclick="() => ToggleSenderDetails(transaction.SenderAccountNumber)">↓</button>
+                                                }
+                                                else
+                                                {
+                                                    <span>@transaction.SenderAccountNumber</span>
+                                                    <button class="arrow-button" @onclick="() => ToggleSenderDetails(transaction.SenderAccountNumber)">→</button>
+                                                }
+                                            </td>
+                                        }
+                                        <td>
+                                            @if (transaction.ReceiverAccountNumber == selectedReceiver && showReceiverDetails)
+                                            {
+                                                <span>@reciverAccounts.FullName</span>
+                                                <button class="arrow-button" @onclick="() => ToggleReceiverDetails(transaction.ReceiverAccountNumber)">↓</button>
+                                            }
+                                            else
+                                            {
+                                                <span>@transaction.ReceiverAccountNumber</span>
+                                                <button class="arrow-button" @onclick="() => ToggleReceiverDetails(transaction.ReceiverAccountNumber)">→</button>
+                                            }
+                                        </td>
+                                        <td>@transaction.TransactionDate.ToString("yyyy/MM/dd")</td>
+                                        <td>$@transaction.Amount</td>
+                                        <td>
+                                            <div class="hstack gap-2">
+                                                <button class="btn btn-outline-danger" @onclick="() => DeleteTransaction(transaction.TransactionId)">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-light">Transaction info...</div>
+                     
+                }
+                else
+                {
+                    <div class="alert alert-info">No transactions available</div>
+                }
+            </div>
+            <a class="btn btn-outline-info"href="/main" >Main</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    public List<Transaction> Transactionss { get; set; } = new List<Transaction>();
+    [Parameter] public string? Id { get; set; }
+    public AccountDTO SenderAccounts { get; set; } = new();
+    public AccountDTO reciverAccounts { get; set; } = new();
+    private bool showReceiverDetails = false;
+    private bool showSenderDetails = false;
+    private string selectedReceiver = string.Empty;
+    private string selectedSender = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Id))
+        {
+            SenderAccounts = await _bankAccountServices.GetByAccountNumberAsync(Id);
+        }
+    }
+
+    private async Task ToggleReceiverDetails(string receiverNumber)
+    {
+        if (selectedReceiver == receiverNumber && showReceiverDetails)
+        {
+            showReceiverDetails = false;
+        }
+        else
+        {
+            reciverAccounts = await _bankAccountServices.GetByAccountNumberAsync(receiverNumber);
+            selectedReceiver = receiverNumber;
+            showReceiverDetails = true;
+        }
+    }
+
+    private async Task ToggleSenderDetails(string senderNumber)
+    {
+        if (selectedSender == senderNumber && showSenderDetails)
+        {
+            showSenderDetails = false;
+        }
+        else
+        {
+            SenderAccounts = await _bankAccountServices.GetByAccountNumberAsync(senderNumber);
+            selectedSender = senderNumber;
+            showSenderDetails = true;
+        }
+    }
+
+   
+
+    protected async override Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(Id))
+        {
+            Transactionss = await _paymentRepository.GetAllAsync() ?? new List<Transaction>();
+        }
+        else
+        {
+            Transactionss = await _paymentRepository.GetTransactionByAccountIdAsync(Id) ?? new List<Transaction>();
+        }
+    }
+
+    private async Task DeleteTransaction(int transactionId)
+    {
+        var confirmDelete = await _js.InvokeAsync<bool>("confirm", "Are you sure you want to delete this transaction?");
+        if (confirmDelete)
+        {
+            var response = await _paymentRepository.DeleteAsync(transactionId);
+            await _js.InvokeVoidAsync("alert", response.message);
+            Transactionss = await _paymentRepository.GetAllAsync() ?? new List<Transaction>(); // Refresh the transaction list after deletion
+        }
+    }
+}

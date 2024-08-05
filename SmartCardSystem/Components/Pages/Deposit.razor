@@ -1,0 +1,47 @@
+﻿@page "/deposit"
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Forms
+
+ @rendermode InteractiveServer
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header" style="background-color: #007bff; color: #fff;"><b>Deposit</b></div>
+                <div class="card-body" style="background-color: #f8f9fa;">
+
+                    <EditForm Model="depositModel" OnValidSubmit="HandleValidSubmit" FormName="depositForm">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="form-group">
+                            <label class="form-label" for="accountNumber">Account Number:</label>
+                            <InputText id="accountNumber" class="form-control" @bind-Value="@depositModel.AccountNumber" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="amount">Amount:</label>
+                            <InputNumber id="amount" class="form-control" @bind-Value="@depositModel.Amount" />
+                        </div>
+
+                        <button type="submit" class="btn btn-outline-success mt-4" style="background-color: #28a745; color: #fff;">Deposit</button>
+                        <a href="/main" class="btn btn-outline-primary mt-4" style="background-color: #007bff; color: #fff;">Back</a>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@code {
+    private DepositMoney depositModel = new DepositMoney();
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await _paymentRepository.DepositAsync(depositModel);
+        await _js.InvokeVoidAsync("alert", response.message);
+        _navManager.NavigateTo($"/main");
+    }
+}

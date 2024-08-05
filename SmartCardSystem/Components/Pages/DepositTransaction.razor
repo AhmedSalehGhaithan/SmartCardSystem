@@ -1,0 +1,138 @@
+﻿@page "/depositTransaction/{Id:int?}"
+@rendermode InteractiveServer
+
+<h3>Deposit List</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="btn-group float-end">
+                            @if (!Id.HasValue)
+                            {
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Add Transaction
+                                </button>
+                            }
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="Deposit">Deposit</a></li>
+                                <li><a class="dropdown-item" href="sendMoney">Sending Money</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                @if (Deposit != null && Deposit.Count > 0)
+                {
+                    <div class="card-header bg-primary text-white">
+                        Deposit List
+                        @if (Id.HasValue)
+                        {
+                            <span style="font-weight:bold">For @Accounts.FullName</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Deposit Id</th>
+                                    @if(!Id.HasValue){
+                                       <th>Account Number</th> 
+                                    }
+                                    
+                                    <th>Amount</th>
+                                    <th>Deposit Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var deposit in Deposit)
+                                {
+                                    <tr>
+                                        <td>@deposit.Id</td>
+                                        @if (!Id.HasValue)
+                                        {
+                                            <td>
+                                                @if (deposit.AccountNumber == selected && showDetails)
+                                                {
+                                                    <span>@AccountPersonName.FullName</span>
+                                                    <button class="arrow-button" @onclick="() => ToggleReceiverDetails(deposit.AccountNumber)">↓</button>
+                                                }
+                                                else
+                                                {
+                                                    <span>@deposit.AccountNumber</span>
+                                                    <button class="arrow-button" @onclick="() => ToggleReceiverDetails(deposit.AccountNumber)">→</button>
+                                                }
+                                            </td>
+                                        }
+                                        
+                                        <td>@deposit.Amount</td>
+                                        <td>@deposit.DepositDate.ToString("yyyy/MM/dd")</td>
+                                        <td>
+                                            <div class="hstack gap-2">
+                                                <button class="btn btn-outline-danger" @onclick="() => DeleteTransaction(deposit.Id)">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-light">Transaction info...</div>
+                }
+                else
+                {
+                    <div class="alert alert-info">No transactions available</div>
+                }
+            </div>
+            <a class="btn btn-outline-info" href="/main">Main</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<DepositMoney> Deposit { get; set; } = new List<DepositMoney>();
+    public AccountDTO Accounts { get; set; } = new();
+    public AccountDTO AccountPersonName { get; set; } = new();
+    [Parameter] public int? Id { get; set; }
+    private bool showDetails = false;
+    private string selected= string.Empty;
+    
+    protected async override Task OnInitializedAsync()
+    {
+         Accounts = await _bankAccountServices.GetByAccountNumberAsync(Id.ToString());
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+            Deposit = await _paymentRepository.GetDepositByAccountNumber(Id.ToString()) ?? new List<DepositMoney>();
+        else
+            Deposit = await _paymentRepository.GetDepositTransactionAsync() ?? new List<DepositMoney>();
+    }
+
+    private async Task ToggleReceiverDetails(string receiverNumber)
+    {
+        if (selected == receiverNumber && showDetails)
+        {
+            showDetails = false;
+        }
+        else
+        {
+            AccountPersonName = await _bankAccountServices.GetByAccountNumberAsync(receiverNumber);
+            selected = receiverNumber;
+            showDetails = true;
+        }
+    }
+
+    private async Task DeleteTransaction(int transactionId)
+    {
+        var confirmDelete = await _js.InvokeAsync<bool>("confirm", "Are you sure you want to delete this deposit transaction?");
+        if (confirmDelete)
+        {
+            var response = await _paymentRepository.DeleteDepositAsync(transactionId);
+            await _js.InvokeVoidAsync("alert", response.message);
+            Deposit = await _paymentRepository.GetDepositTransactionAsync() ?? new List<DepositMoney>(); // Refresh the deposit list after deletion
+        }
+    }
+}
